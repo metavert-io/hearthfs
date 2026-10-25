@@ -1,0 +1,18 @@
+[package]
+name = "hearthfs-ffi"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "C ABI over the HearthFS virtual filesystem, linked into the macOS FSKit extension"
+
+[lib]
+name = "hearthfs_ffi"
+crate-type = ["staticlib"]
+
+[dependencies]
+hearthfs-core.workspace = true
+hearthfs-source-fs.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true

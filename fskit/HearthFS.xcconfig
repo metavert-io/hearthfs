@@ -1,0 +1,12 @@
+// Signing and bundle IDs for the HearthFS app and its FSKit extension.
+//
+// Don't put your own values here. Copy Local.xcconfig.example to
+// Local.xcconfig (git ignores it) and set your Apple Developer team and a
+// bundle ID prefix you control there; it overrides these defaults.
+// project.yml applies this file to both targets in every configuration.
+
+DEVELOPMENT_TEAM =
+// The app's bundle ID is the prefix itself; the extension's is <prefix>.fskit.
+HEARTHFS_BUNDLE_PREFIX = org.example.hearthfs
+
+#include? "Local.xcconfig"

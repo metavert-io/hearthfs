@@ -1,0 +1,21 @@
+[package]
+name = "hearthfs-source-fs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "HearthFS source for a local folder"
+
+[dependencies]
+hearthfs-core.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+bytes.workspace = true
+futures.workspace = true
+notify.workspace = true
+tokio.workspace = true
+tokio-stream = "0.1"
+tracing.workspace = true
+
+[dev-dependencies]
+tempfile = "3"

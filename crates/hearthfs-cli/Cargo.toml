@@ -1,0 +1,28 @@
+[package]
+name = "hearthfs-cli"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "The hearthfs command: mount folders, notes vaults, second brains and repositories as a searchable, read-only filesystem for AI agents"
+
+[[bin]]
+name = "hearthfs"
+path = "src/main.rs"
+
+[dependencies]
+hearthfs-core.workspace = true
+hearthfs-nfs.workspace = true
+hearthfs-source-fs.workspace = true
+hearthfs-source-github.workspace = true
+hearthfs-source-hearthloom.workspace = true
+hearthfs-source-mcp.workspace = true
+anyhow.workspace = true
+libc = "0.2"
+clap.workspace = true
+nfs3_server.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true

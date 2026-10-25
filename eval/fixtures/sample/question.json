@@ -1,0 +1,37 @@
+[
+  {
+    "id": "q01",
+    "family": "fact-lookup",
+    "prompt": "How much money did the board approve for the rain barrel system?",
+    "gold_file_ids": ["data/meetings/2026-03-12-board.md"],
+    "gold_answer": "$640"
+  },
+  {
+    "id": "q02",
+    "family": "fact-lookup",
+    "prompt": "What soil pH did the spring soil test report for bed 7?",
+    "gold_file_ids": ["data/reports/soil-test-2026.txt"],
+    "gold_answer": "5.9"
+  },
+  {
+    "id": "q03",
+    "family": "date-and-place",
+    "prompt": "When and where is the spring seed swap?",
+    "gold_file_ids": ["data/events/seed-swap.ics"],
+    "gold_answer": "Saturday 18 April 2026, 10:00 to 13:00, in the community room of the Elm Street Library annex"
+  },
+  {
+    "id": "q04",
+    "family": "multi-file",
+    "prompt": "Who supplied the spring compost delivery, and what was the total on the invoice?",
+    "gold_file_ids": ["data/email/compost-invoice.eml", "data/meetings/2026-04-09-board.md"],
+    "gold_answer": "Riverbend Compost; $285.00 (invoice RB-2291)"
+  },
+  {
+    "id": "q05",
+    "family": "fact-lookup",
+    "prompt": "Which volunteer waters beds 9 to 16 in the second week of July?",
+    "gold_file_ids": ["data/rotas/watering-rota-july.csv"],
+    "gold_answer": "Tomas"
+  }
+]

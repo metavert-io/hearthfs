@@ -1,0 +1,26 @@
+# cargo-deny configuration: https://embarkstudios.github.io/cargo-deny/
+# Run `cargo deny check licenses` (or `cargo deny check` for everything).
+
+[licenses]
+version = 2
+# Every licence in the dependency graph (Cargo.lock, all targets) is
+# covered by this list. Crates that offer a choice (e.g. MIT OR Apache-2.0)
+# need only one allowed option. Licences of bundled C code (SQLite,
+# Oniguruma) and of the embedding model are listed in THIRD-PARTY-NOTICES.md.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "BSD-3-Clause",        # nfs3_server, subtle, instant; encoding_rs (with MIT/Apache-2.0)
+    "ISC",                 # rustls-webpki, untrusted, inotify; ring (with Apache-2.0)
+    "Unicode-3.0",         # icu_* (via url/idna), unicode-ident
+    "Unlicense",           # nfs3_types, nfs3_macros
+    "CDLA-Permissive-2.0", # webpki-roots (Mozilla's CA certificate list)
+    "CC0-1.0",             # notify
+    "Zlib",                # foldhash
+]
+confidence-threshold = 0.8
+
+[sources]
+# Everything comes from crates.io.
+unknown-registry = "deny"
+unknown-git = "deny"

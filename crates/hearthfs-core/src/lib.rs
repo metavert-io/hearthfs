@@ -1,0 +1,14 @@
+pub mod api_source;
+pub mod chunking;
+pub mod embeddings;
+pub mod event_log;
+pub mod fts;
+pub mod indexer;
+pub mod inode_table;
+pub mod magic;
+pub mod passthrough;
+pub mod source;
+pub mod tokens;
+pub mod structure;
+pub mod vector_store;
+pub mod vfs;

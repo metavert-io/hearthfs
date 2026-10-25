@@ -1,0 +1,10 @@
+Soil test results, spring 2026
+Lab sample date: 2 March 2026
+
+Bed   pH    Organic matter   Notes
+3     6.8   5.1%             good
+7     5.9   3.2%             acidic: add garden lime before planting
+12    7.1   4.4%             good
+19    6.5   6.0%             good
+
+Recommendation: lime bed 7 at 150 g per square metre and retest in autumn.

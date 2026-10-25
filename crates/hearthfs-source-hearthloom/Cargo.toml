@@ -1,0 +1,17 @@
+[package]
+name = "hearthfs-source-hearthloom"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+description = "HearthFS source for Hearthloom brains"
+
+[dependencies]
+hearthfs-core.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+bytes.workspace = true
+futures.workspace = true
+
+[dev-dependencies]
+tokio.workspace = true

@@ -1,0 +1,12 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Willow Lane Community Garden//Events//EN
+BEGIN:VEVENT
+UID:seed-swap-2026@willowlane-garden.example
+DTSTART:20260418T100000
+DTEND:20260418T130000
+SUMMARY:Spring seed swap
+LOCATION:Community room\, Elm Street Library annex
+DESCRIPTION:Bring seeds in labelled envelopes. Tomato and bean seedlings welcome.
+END:VEVENT
+END:VCALENDAR

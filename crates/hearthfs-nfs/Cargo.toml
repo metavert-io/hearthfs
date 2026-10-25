@@ -1,0 +1,17 @@
+[package]
+name = "hearthfs-nfs"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "NFSv3 transport for HearthFS, serving the virtual filesystem through nfs3_server"
+
+[dependencies]
+hearthfs-core.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+bytes.workspace = true
+nfs3_server.workspace = true
+nfs3_types.workspace = true
+tokio.workspace = true
+tracing.workspace = true

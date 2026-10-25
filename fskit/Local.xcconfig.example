@@ -1,0 +1,14 @@
+// Per-developer signing for the HearthFS app. Copy this file to
+// Local.xcconfig (git ignores it) and fill in your own values.
+//
+// DEVELOPMENT_TEAM: your Apple Developer team ID (10 characters), shown at
+// developer.apple.com under Membership, or in Xcode > Settings > Accounts.
+// The FSKit entitlement is restricted, so a paid team is required; see
+// fskit/README.md ("Signing").
+//
+// HEARTHFS_BUNDLE_PREFIX: a reverse-DNS prefix you control. The app's
+// bundle ID is the prefix itself and the FSKit extension's is
+// <prefix>.fskit.
+
+DEVELOPMENT_TEAM =
+HEARTHFS_BUNDLE_PREFIX = org.example.hearthfs

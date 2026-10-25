@@ -1,0 +1,57 @@
+[workspace]
+members = [
+    "crates/hearthfs-cli",
+    "crates/hearthfs-ffi",
+    "crates/hearthfs-core",
+    "crates/hearthfs-nfs",
+    "crates/hearthfs-source-fs",
+    "crates/hearthfs-source-github",
+    "crates/hearthfs-source-hearthloom",
+    "crates/hearthfs-source-mcp",
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.2"
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/metavert-io/hearthfs"
+
+[workspace.dependencies]
+hearthfs-core = { path = "crates/hearthfs-core" }
+hearthfs-nfs = { path = "crates/hearthfs-nfs" }
+hearthfs-source-fs = { path = "crates/hearthfs-source-fs" }
+hearthfs-source-github = { path = "crates/hearthfs-source-github" }
+hearthfs-source-hearthloom = { path = "crates/hearthfs-source-hearthloom" }
+hearthfs-source-mcp = { path = "crates/hearthfs-source-mcp" }
+
+anyhow = "1"
+async-trait = "0.1"
+bytes = "1"
+clap = { version = "4", features = ["derive", "env"] }
+futures = "0.3"
+ndarray = "0.16"
+nfs3_server = "0.11"
+tokenizers = { version = "0.21", default-features = false, features = ["onig"] }
+tract-onnx = "0.21"
+nfs3_types = "0.5"
+notify = "7"
+reqwest = { version = "0.12", features = ["json"] }
+rusqlite = { version = "0.32", features = ["bundled"] }
+tree-sitter = "0.24"
+ureq = { version = "2", features = ["json"] }
+tree-sitter-language = "0.1"
+tree-sitter-rust = "0.23"
+tree-sitter-python = "0.23"
+tree-sitter-javascript = "0.23"
+tree-sitter-typescript = "0.23"
+tree-sitter-go = "0.23"
+tree-sitter-java = "0.23"
+tree-sitter-c = "0.23"
+tree-sitter-cpp = "0.23"
+tree-sitter-ruby = "0.23"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }

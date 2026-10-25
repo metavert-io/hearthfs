@@ -1,0 +1,20 @@
+[package]
+name = "hearthfs-source-mcp"
+version = "0.1.0"
+edition = "2021"
+license.workspace = true
+repository.workspace = true
+description = "HearthFS source for the resources of Model Context Protocol servers"
+
+[dependencies]
+hearthfs-core.workspace = true
+anyhow.workspace = true
+async-trait.workspace = true
+base64 = "0.22"
+bytes.workspace = true
+futures.workspace = true
+reqwest.workspace = true
+serde_json.workspace = true
+tokio.workspace = true
+tokio-stream = "0.1"
+tracing.workspace = true

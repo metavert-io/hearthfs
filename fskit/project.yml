@@ -1,0 +1,121 @@
+name: HearthFS
+options:
+  createIntermediateGroups: true
+  deploymentTarget:
+    macOS: "26.0"
+
+# DEVELOPMENT_TEAM and HEARTHFS_BUNDLE_PREFIX come from HearthFS.xcconfig,
+# which includes the per-developer, gitignored Local.xcconfig (copy
+# Local.xcconfig.example). Never set them here.
+configFiles:
+  Debug: HearthFS.xcconfig
+  Release: HearthFS.xcconfig
+
+settings:
+  base:
+    # fskitd silently refuses x86_64-only modules, so the appex must be
+    # arm64 and link the arm64 staticlib: cargo build --release --target
+    # aarch64-apple-darwin -p hearthfs-ffi. On Apple silicon a shell that
+    # runs under Rosetta reports x86_64 from `uname -m`; don't trust it here.
+    ARCHS: arm64
+    ONLY_ACTIVE_ARCH: NO
+    SWIFT_VERSION: "5.0"
+    # Automatic signing with your team (Local.xcconfig) mints and embeds the
+    # restricted fskit provisioning profile (requires the FSKit Module
+    # capability enabled for the extension's bundle ID on the developer
+    # portal + PLA accepted). Manual/ad-hoc signing = pkd/fskitd silently
+    # ignore the appex.
+    CODE_SIGN_STYLE: Automatic
+    CODE_SIGN_IDENTITY: "Apple Development"
+    PROVISIONING_PROFILE_SPECIFIER: ""
+    ENABLE_HARDENED_RUNTIME: NO
+    MACOSX_DEPLOYMENT_TARGET: "26.0"
+
+targets:
+  HearthFS:
+    type: application
+    platform: macOS
+    sources:
+      - path: Sources/App
+    info:
+      path: Generated/HearthFS-Info.plist
+      properties:
+        CFBundleDisplayName: HearthFS
+        CFBundleShortVersionString: "0.1.2"
+        CFBundleVersion: "1"
+        LSMinimumSystemVersion: "26.0"
+        NSHumanReadableCopyright: ""
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(HEARTHFS_BUNDLE_PREFIX)
+        PRODUCT_NAME: HearthFS
+        GENERATE_INFOPLIST_FILE: NO
+    dependencies:
+      - target: HearthFSExtension
+        embed: true
+    scheme:
+      testTargets: []
+
+  HearthFSExtension:
+    type: extensionkit-extension
+    platform: macOS
+    sources:
+      - path: Sources/Extension
+    info:
+      path: Generated/HearthFSExtension-Info.plist
+      properties:
+        CFBundleDisplayName: HearthFSExtension
+        # pkd silently ignores ExtensionKit appexes without the XPC! package
+        # type (Apple's FSKit modules all declare it; xcodegen omits it).
+        CFBundlePackageType: "XPC!"
+        CFBundleShortVersionString: "0.1.2"
+        CFBundleVersion: "1"
+        # Keys verified against Apple's shipping FSKit modules
+        # (com.apple.fskit.ftp.appex / com.apple.fskit.msdos.appex):
+        #   EXExtensionPointIdentifier = com.apple.fskit.fsmodule
+        #   FSShortName                (what `mount -F -t <name>` matches)
+        #   FSSupportsBlockResources / FSSupportsPathURLs (NOT
+        #   "FSSupportsPathURLResources" - the real key is FSSupportsPathURLs)
+        #   FSRequiresSecurityScopedPathURLResources
+        EXAppExtensionAttributes:
+          EXExtensionPointIdentifier: com.apple.fskit.fsmodule
+          FSShortName: hearthfs
+          FSSupportsBlockResources: false
+          FSSupportsPathURLs: true
+          # true = FSKit passes the source path as a security-scoped URL, which
+          # is what lets this SANDBOXED extension read the user's folder at all.
+          # false (the old value) mounted fine but every read hit a kernel
+          # sandbox deny(file-read-data) -> empty listings/ENOENT (2026-07-11).
+          FSRequiresSecurityScopedPathURLResources: true
+          FSActivateOptionSyntax:
+            shortOptions: "o:"
+          FSMediaTypes: {}
+          FSPersonalities:
+            HearthFS:
+              FSName: HearthFS
+        # No legacy NSExtension dict: Apple's FSKit modules omit it, and
+        # declaring it alongside EXAppExtensionAttributes double-registers
+        # the module (a second, non-toggleable row in Settings that broke
+        # enablement). pkd not listing the appex is normal for ExtensionKit.
+    # The restricted com.apple.developer.fskit.fsmodule entitlement is signed
+    # via CODE_SIGN_ENTITLEMENTS under Automatic signing; xcodebuild
+    # -allowProvisioningUpdates mints and embeds the profile (the FSKit Module
+    # capability must exist on the portal for this bundle ID — added once per
+    # team via the Xcode GUI).
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(HEARTHFS_BUNDLE_PREFIX).fskit
+        PRODUCT_NAME: HearthFSExtension
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGN_ENTITLEMENTS: HearthFSExtension.entitlements
+        SWIFT_OBJC_BRIDGING_HEADER: $(SRCROOT)/Sources/Extension/HearthFSFFI.h
+        LIBRARY_SEARCH_PATHS:
+          - $(PROJECT_DIR)/../target/aarch64-apple-darwin/release
+        OTHER_LDFLAGS:
+          - -lhearthfs_ffi
+          - -framework
+          - Security
+          - -framework
+          - CoreFoundation
+          - -framework
+          - SystemConfiguration
