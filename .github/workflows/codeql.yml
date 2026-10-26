@@ -1,0 +1,86 @@
+# CodeQL code scanning (advanced setup). The FSKit app's Swift has to be
+# compiled for CodeQL to see it, and its Xcode project is generated, so
+# GitHub's default setup can't build it; this workflow covers the Rust and
+# Python too. Results appear under Security → Code scanning, with Copilot
+# Autofix suggestions where CodeQL has them.
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 5 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    permissions:
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # macOS, so code behind cfg(target_os = "macos") is analysed.
+          - language: rust
+            build-mode: none
+            os: macos-latest
+          - language: swift
+            build-mode: manual
+            os: macos-26
+          - language: python
+            build-mode: none
+            os: ubuntu-latest
+          - language: actions
+            build-mode: none
+            os: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: Swatinem/rust-cache@d1527c8f67ef9af357290475d4af4b0fab8f12e0 # v2.9.3
+        if: matrix.language == 'swift'
+        with:
+          key: ffi-aarch64
+      - name: Build the FFI static library (arm64)
+        if: matrix.language == 'swift'
+        run: |
+          rustup toolchain install stable --profile minimal --target aarch64-apple-darwin --no-self-update
+          cargo +stable build --release --locked --target aarch64-apple-darwin -p hearthfs-ffi
+      - name: Install XcodeGen
+        if: matrix.language == 'swift'
+        env:
+          VERSION: 2.45.4
+          SHA256: 090ec29491aad50aec10631bf6e62253fed733c50f3aab0f5ffc86bc170bdbef
+        run: |
+          curl -sSfL -o "$RUNNER_TEMP/xcodegen.zip" \
+            "https://github.com/yonaskolb/XcodeGen/releases/download/${VERSION}/xcodegen.zip"
+          echo "${SHA256}  $RUNNER_TEMP/xcodegen.zip" | shasum -a 256 --check --strict
+          unzip -q "$RUNNER_TEMP/xcodegen.zip" -d "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/xcodegen/bin" >> "$GITHUB_PATH"
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          queries: security-extended
+      # Debug, without the index store: CodeQL's Swift extraction made the
+      # Release build take 20 minutes. The library search path is the
+      # release static library above in every configuration.
+      - name: Build the FSKit app
+        if: matrix.language == 'swift'
+        run: |
+          (cd fskit && xcodegen generate)
+          xcodebuild build -quiet \
+            -project fskit/HearthFS.xcodeproj -scheme HearthFS -configuration Debug \
+            -derivedDataPath "$RUNNER_TEMP/DerivedData" \
+            CODE_SIGNING_ALLOWED=NO COMPILER_INDEX_STORE_ENABLE=NO
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
+        with:
+          category: /language:${{ matrix.language }}
