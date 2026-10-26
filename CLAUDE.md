@@ -19,6 +19,12 @@ cargo test --workspace
 The macOS app and FSKit extension build separately: `./fskit/build.sh`
 (see "FSKit build" below and fskit/README.md).
 
+GitHub Actions runs the three checks on macOS, plus cargo-deny's licence
+and source checks, for every push to `main` and every pull request
+(`.github/workflows/ci.yml`; clippy warnings don't fail it). CodeQL
+(`codeql.yml`) also compiles the FSKit app, unsigned, so a Swift build
+break shows up there. Check `gh run list` after pushing.
+
 ## Benchmarks and retrieval evals
 
 - `docs/benchmarks.md` holds the published measurements (indexing
