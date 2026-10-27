@@ -30,6 +30,8 @@ pub struct Embedder {
     id: String,
 }
 
+// One Backend per Embedder, so boxing the large variant would buy nothing.
+#[allow(clippy::large_enum_variant)]
 enum Backend {
     LocalOnnx {
         model: Model,
@@ -67,9 +69,9 @@ impl Embedder {
         let model = tract_onnx::onnx()
             .model_for_path(&onnx_path)
             .context("failed to load ONNX model")?
-            .with_input_fact(0, InferenceFact::dt_shape(i64::datum_type(), &[1, max_len as i64]))?
-            .with_input_fact(1, InferenceFact::dt_shape(i64::datum_type(), &[1, max_len as i64]))?
-            .with_input_fact(2, InferenceFact::dt_shape(i64::datum_type(), &[1, max_len as i64]))?
+            .with_input_fact(0, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
+            .with_input_fact(1, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
+            .with_input_fact(2, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
             .into_optimized()
             .context("failed to optimize model")?
             .into_runnable()

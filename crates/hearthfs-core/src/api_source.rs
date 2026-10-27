@@ -731,7 +731,7 @@ impl Source for ApiSource {
         };
         let results = items
             .iter()
-            .filter_map(|item| {
+            .map(|item| {
                 let title = item
                     .get("title")
                     .or_else(|| item.get("name"))
@@ -756,12 +756,12 @@ impl Source for ApiSource {
                     .map(PathBuf::from)
                     .unwrap_or_else(|| PathBuf::from(slugify(&title)));
 
-                Some(SourceSearchResult {
+                SourceSearchResult {
                     path,
                     title,
                     snippet,
                     score,
-                })
+                }
             })
             .collect();
 
@@ -953,8 +953,7 @@ fn collect_children(
 ) {
     for node in nodes {
         let node_path = &node.path;
-        if node_path.starts_with(prefix) {
-            let rest = &node_path[prefix.len()..];
+        if let Some(rest) = node_path.strip_prefix(prefix) {
             let name = rest.split('/').next().unwrap_or(rest);
             if !name.is_empty() && !name.contains('{') && seen.insert(name.to_string()) {
                 entries.push(SourceEntry {

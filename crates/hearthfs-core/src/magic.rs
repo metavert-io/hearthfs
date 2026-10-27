@@ -1,7 +1,7 @@
-/// Magic path parsing.
-///
-/// Magic paths use `@` as a separator: `file.txt@tokens`, `dir/@search/query`.
-/// The `@` splits a real filesystem path from a virtual operation.
+//! Magic path parsing.
+//!
+//! Magic paths use `@` as a separator: `file.txt@tokens`, `dir/@search/query`.
+//! The `@` splits a real filesystem path from a virtual operation.
 
 /// A parsed magic path.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -34,8 +34,7 @@ pub fn parse(name: &str) -> MagicPath<'_> {
     let op = &name[at_pos + 1..];
 
     // `@search/query` — real part is empty (used at directory level)
-    if op.starts_with("search/") {
-        let query = &op[7..];
+    if let Some(query) = op.strip_prefix("search/") {
         return MagicPath::Search(query);
     }
     if op == "search" {

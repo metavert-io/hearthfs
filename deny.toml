@@ -1,5 +1,18 @@
 # cargo-deny configuration: https://embarkstudios.github.io/cargo-deny/
 # Run `cargo deny check licenses` (or `cargo deny check` for everything).
+# CI checks licenses and sources (ci.yml) and advisories (audit.yml).
+
+[advisories]
+# Unmaintained crates count only when a workspace crate depends on them
+# directly; the transitive ones (instant via notify, paste via tokenizers,
+# anymap2 via a tract build script) have no known vulnerability.
+unmaintained = "workspace"
+ignore = [
+    # time 0.3.41: stack exhaustion when parsing a crafted format
+    # description. It arrives only through liquid, which tract-linalg's
+    # build script uses, so it never runs in a HearthFS binary.
+    { id = "RUSTSEC-2026-0009", reason = "build-time only (liquid, in tract-linalg's build script)" },
+]
 
 [licenses]
 version = 2

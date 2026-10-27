@@ -7,7 +7,6 @@ use nfs3_server::vfs::{
 use nfs3_types::nfs3::{fattr3, filename3, ftype3, nfspath3, nfsstat3, nfstime3, specdata3};
 
 use hearthfs_core::passthrough::{EntryMeta, PassthroughVfs};
-use tracing;
 
 /// Adapter that implements NfsReadFileSystem by delegating to a PassthroughVfs.
 pub struct HearthNfs {

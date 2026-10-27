@@ -1,8 +1,8 @@
-/// Text chunking shared by the FTS and vector indexes.
-///
-/// Whole-file indexing collapses at scale (BM25 over 45KB documents ranks on
-/// distractors; one head embedding misses everything past the first lines).
-/// Both indexes store per-chunk rows and aggregate to file-level results.
+//! Text chunking shared by the FTS and vector indexes.
+//!
+//! Whole-file indexing collapses at scale (BM25 over 45KB documents ranks on
+//! distractors; one head embedding misses everything past the first lines).
+//! Both indexes store per-chunk rows and aggregate to file-level results.
 
 /// Split text into line-aligned chunks of roughly `target_bytes` each.
 /// A single line longer than the target becomes its own chunk.

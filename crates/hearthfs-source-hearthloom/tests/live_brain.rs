@@ -43,7 +43,7 @@ async fn brain_mount_surface() {
     let names: Vec<&str> = root.iter().map(|e| e.name.as_str()).collect();
     for expected in ["BRAIN.md", ORIGIN_MARKER, "entities", "days", "goals"] {
         assert!(
-            names.iter().any(|n| *n == expected),
+            names.contains(&expected),
             "root listing missing {expected}; got {names:?}"
         );
     }

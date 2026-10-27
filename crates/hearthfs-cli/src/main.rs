@@ -214,7 +214,7 @@ async fn main() -> Result<()> {
                     .or_else(|| {
                         auth_service
                             .as_deref()
-                            .and_then(|svc| load_service_key(svc))
+                            .and_then(load_service_key)
                     })
                     .or_else(hearthfs_source_hearthloom::HearthloomSource::load_key)
                     .ok_or_else(|| {
@@ -244,7 +244,7 @@ async fn main() -> Result<()> {
                 let key = api_key.or_else(|| {
                     auth_service
                         .as_deref()
-                        .and_then(|svc| load_service_key(svc))
+                        .and_then(load_service_key)
                 });
                 let auth = key.map(|k| format!("Bearer {}", k.trim()));
                 tracing::info!("connecting to manifest API at {url}");
@@ -262,7 +262,7 @@ async fn main() -> Result<()> {
                 let key = api_key.or_else(|| {
                     auth_service
                         .as_deref()
-                        .and_then(|svc| load_service_key(svc))
+                        .and_then(load_service_key)
                 });
                 tracing::info!("connecting to MCP server");
                 Arc::new(hearthfs_source_mcp::McpSource::connect(spec, key).await?)

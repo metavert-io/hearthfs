@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::{Arc, RwLock};
 use std::time::SystemTime;
 
@@ -300,7 +300,7 @@ impl PassthroughVfs {
 
     // --- Magic path generators ---
 
-    async fn generate_tokens(&self, parent: &PathBuf, real_name: &str) -> Result<Vec<u8>> {
+    async fn generate_tokens(&self, parent: &Path, real_name: &str) -> Result<Vec<u8>> {
         let file_path = if parent.as_os_str().is_empty() {
             real_name.into()
         } else {
@@ -311,7 +311,7 @@ impl PassthroughVfs {
         Ok(format!("{count}\n").into_bytes())
     }
 
-    async fn generate_outline(&self, parent: &PathBuf, real_name: &str) -> Result<Vec<u8>> {
+    async fn generate_outline(&self, parent: &Path, real_name: &str) -> Result<Vec<u8>> {
         let file_path = if parent.as_os_str().is_empty() {
             real_name.into()
         } else {
@@ -324,7 +324,7 @@ impl PassthroughVfs {
 
     async fn generate_section(
         &self,
-        parent: &PathBuf,
+        parent: &Path,
         real_name: &str,
         section_name: &str,
     ) -> Result<Vec<u8>> {
@@ -340,7 +340,7 @@ impl PassthroughVfs {
 
     async fn generate_fit(
         &self,
-        parent: &PathBuf,
+        parent: &Path,
         real_name: &str,
         budget_str: &str,
     ) -> Result<Vec<u8>> {
@@ -379,7 +379,7 @@ impl PassthroughVfs {
         Ok(fitted.into_bytes())
     }
 
-    async fn generate_search(&self, parent: &PathBuf, query: &str) -> Result<Vec<u8>> {
+    async fn generate_search(&self, parent: &Path, query: &str) -> Result<Vec<u8>> {
         if query.is_empty() {
             return Ok(b"Usage: cat @search/<query>\n".to_vec());
         }
@@ -504,14 +504,14 @@ impl PassthroughVfs {
     }
 
     /// Register a virtual search directory and return its metadata.
-    fn register_search_dir(&self, real_parent: &PathBuf, name: &str) -> EntryMeta {
+    fn register_search_dir(&self, real_parent: &Path, name: &str) -> EntryMeta {
         let virtual_path: PathBuf =
             format!("__searchdir__/{}/{name}", real_parent.display()).into();
         let inode = self.inodes.get_or_insert(&virtual_path);
         self.search_dirs
             .write()
             .unwrap()
-            .insert(inode, real_parent.clone());
+            .insert(inode, real_parent.to_path_buf());
         EntryMeta {
             inode,
             size: 0,
@@ -524,7 +524,7 @@ impl PassthroughVfs {
     /// Register a virtual section directory and return its metadata.
     fn register_section_dir(
         &self,
-        real_parent: &PathBuf,
+        real_parent: &Path,
         real_filename: &str,
         name: &str,
     ) -> EntryMeta {
@@ -534,7 +534,7 @@ impl PassthroughVfs {
         self.section_dirs
             .write()
             .unwrap()
-            .insert(inode, (real_parent.clone(), real_filename.to_string()));
+            .insert(inode, (real_parent.to_path_buf(), real_filename.to_string()));
         EntryMeta {
             inode,
             size: 0,
@@ -547,7 +547,7 @@ impl PassthroughVfs {
     /// Register a virtual fit directory and return its metadata.
     fn register_fit_dir(
         &self,
-        real_parent: &PathBuf,
+        real_parent: &Path,
         real_filename: &str,
         name: &str,
     ) -> EntryMeta {
@@ -556,7 +556,7 @@ impl PassthroughVfs {
         self.fit_dirs
             .write()
             .unwrap()
-            .insert(inode, (real_parent.clone(), real_filename.to_string()));
+            .insert(inode, (real_parent.to_path_buf(), real_filename.to_string()));
         EntryMeta {
             inode,
             size: 0,

@@ -12,7 +12,7 @@ pub fn estimate_tokens(data: &[u8]) -> u64 {
         data.len() as u64
     };
     // ceil(chars / 3.5) ≈ (chars * 2 + 6) / 7
-    (char_count * 2 + 6) / 7
+    (char_count * 2).div_ceil(7)
 }
 
 #[cfg(test)]

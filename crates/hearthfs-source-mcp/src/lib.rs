@@ -40,13 +40,18 @@ struct Resource {
     mime: Option<String>,
 }
 
+/// The cached listing: when it was fetched, filename → resource, filenames.
+type Listing = (Instant, HashMap<String, Resource>, Vec<String>);
+
 pub struct McpSource {
     transport: Transport,
     next_id: AtomicU64,
     /// filename → resource, refreshed on TTL expiry.
-    listing: RwLock<Option<(Instant, HashMap<String, Resource>, Vec<String>)>>,
+    listing: RwLock<Option<Listing>>,
 }
 
+// One Transport per MCP source, so boxing the large variant would buy nothing.
+#[allow(clippy::large_enum_variant)]
 enum Transport {
     Http {
         client: reqwest::Client,
