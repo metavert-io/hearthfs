@@ -69,9 +69,18 @@ impl Embedder {
         let model = tract_onnx::onnx()
             .model_for_path(&onnx_path)
             .context("failed to load ONNX model")?
-            .with_input_fact(0, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
-            .with_input_fact(1, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
-            .with_input_fact(2, InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]))?
+            .with_input_fact(
+                0,
+                InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]),
+            )?
+            .with_input_fact(
+                1,
+                InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]),
+            )?
+            .with_input_fact(
+                2,
+                InferenceFact::dt_shape(i64::datum_type(), [1, max_len as i64]),
+            )?
             .into_optimized()
             .context("failed to optimize model")?
             .into_runnable()
@@ -124,9 +133,14 @@ impl Embedder {
             Some(("voyage", model)) => {
                 let key = std::env::var("VOYAGE_API_KEY").ok().or_else(|| {
                     let path = std::env::var_os("HOME").map(|h| {
-                        Path::new(&h).join(".config").join("hearthfs").join("voyage.key")
+                        Path::new(&h)
+                            .join(".config")
+                            .join("hearthfs")
+                            .join("voyage.key")
                     })?;
-                    std::fs::read_to_string(path).ok().map(|s| s.trim().to_string())
+                    std::fs::read_to_string(path)
+                        .ok()
+                        .map(|s| s.trim().to_string())
                 });
                 let key = key.context(
                     "voyage backend needs VOYAGE_API_KEY or ~/.config/hearthfs/voyage.key",
@@ -216,7 +230,10 @@ impl Embedder {
                         .chunks(per_worker)
                         .map(|slice| {
                             scope.spawn(move || {
-                                slice.iter().map(|t| self.embed_local(t)).collect::<Vec<_>>()
+                                slice
+                                    .iter()
+                                    .map(|t| self.embed_local(t))
+                                    .collect::<Vec<_>>()
                             })
                         })
                         .collect();
@@ -259,8 +276,11 @@ impl Embedder {
             .map_err(|e| anyhow::anyhow!("tokenization failed: {e}"))?;
 
         let mut input_ids: Vec<i64> = encoding.get_ids().iter().map(|&id| id as i64).collect();
-        let mut attention_mask: Vec<i64> =
-            encoding.get_attention_mask().iter().map(|&m| m as i64).collect();
+        let mut attention_mask: Vec<i64> = encoding
+            .get_attention_mask()
+            .iter()
+            .map(|&m| m as i64)
+            .collect();
         let mut token_type_ids: Vec<i64> =
             encoding.get_type_ids().iter().map(|&t| t as i64).collect();
 
@@ -359,8 +379,7 @@ impl Embedder {
                         .context("voyage: missing data array")?;
                     let mut out = vec![Vec::new(); texts.len()];
                     for item in data {
-                        let idx = item["index"].as_u64().context("voyage: missing index")?
-                            as usize;
+                        let idx = item["index"].as_u64().context("voyage: missing index")? as usize;
                         let vec: Vec<f32> = item["embedding"]
                             .as_array()
                             .context("voyage: missing embedding")?

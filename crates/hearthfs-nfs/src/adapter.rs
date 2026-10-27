@@ -32,14 +32,10 @@ impl NfsReadFileSystem for HearthNfs {
         filename: &filename3<'_>,
     ) -> Result<Self::Handle, nfsstat3> {
         let name = std::str::from_utf8(&filename.0).map_err(|_| nfsstat3::NFS3ERR_INVAL)?;
-        let meta = self
-            .vfs
-            .lookup(dirid.as_u64(), name)
-            .await
-            .map_err(|e| {
-                tracing::debug!("lookup({}, {name}) failed: {e}", dirid.as_u64());
-                nfsstat3::NFS3ERR_NOENT
-            })?;
+        let meta = self.vfs.lookup(dirid.as_u64(), name).await.map_err(|e| {
+            tracing::debug!("lookup({}, {name}) failed: {e}", dirid.as_u64());
+            nfsstat3::NFS3ERR_NOENT
+        })?;
         Ok(FileHandleU64::new(meta.inode))
     }
 
@@ -69,20 +65,21 @@ impl NfsReadFileSystem for HearthNfs {
         dirid: &Self::Handle,
         cookie: u64,
     ) -> Result<impl ReadDirPlusIterator<Self::Handle>, nfsstat3> {
-        let entries = self
-            .vfs
-            .readdir(dirid.as_u64())
-            .await
-            .map_err(|e| {
-                tracing::debug!("readdir({}) failed: {e}", dirid.as_u64());
-                nfsstat3::NFS3ERR_IO
-            })?;
+        let entries = self.vfs.readdir(dirid.as_u64()).await.map_err(|e| {
+            tracing::debug!("readdir({}) failed: {e}", dirid.as_u64());
+            nfsstat3::NFS3ERR_IO
+        })?;
 
         // Fetch attrs for each entry so readdirplus can include them
         let mut plus_entries = Vec::with_capacity(entries.len());
         for (idx, (name, inode, _is_dir)) in entries.into_iter().enumerate() {
             let cookie_val = (idx + 1) as u64;
-            let attr = self.vfs.getattr(inode).await.ok().map(|m| meta_to_fattr3(&m));
+            let attr = self
+                .vfs
+                .getattr(inode)
+                .await
+                .ok()
+                .map(|m| meta_to_fattr3(&m));
             plus_entries.push(DirEntryPlus {
                 fileid: inode,
                 name: filename3::from(name.into_bytes()),

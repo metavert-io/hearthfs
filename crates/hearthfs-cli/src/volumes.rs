@@ -46,8 +46,8 @@ pub fn load() -> Result<VolumesFile> {
     if !path.exists() {
         return Ok(VolumesFile::default());
     }
-    let data = std::fs::read_to_string(&path)
-        .with_context(|| format!("reading {}", path.display()))?;
+    let data =
+        std::fs::read_to_string(&path).with_context(|| format!("reading {}", path.display()))?;
     serde_json::from_str(&data).with_context(|| format!("parsing {}", path.display()))
 }
 
@@ -116,7 +116,9 @@ pub fn add(
     }
     // Generic api volumes reference a key by name; make sure it exists.
     if let Some(svc) = fields.get("auth_service").filter(|s| !s.is_empty()) {
-        let configured = crate::secret_key_path(svc).map(|p| p.exists()).unwrap_or(false);
+        let configured = crate::secret_key_path(svc)
+            .map(|p| p.exists())
+            .unwrap_or(false);
         if !configured {
             return Err(anyhow!(
                 "no key stored under '{svc}' — run: hearthfs auth {svc}"
@@ -136,7 +138,9 @@ pub fn add(
     let name = name.unwrap_or_else(|| default_name(&adapter, &fields));
     let mut file = load()?;
     if file.volumes.iter().any(|v| v.name == name) {
-        return Err(anyhow!("volume '{name}' already exists (hearthfs volume remove {name})"));
+        return Err(anyhow!(
+            "volume '{name}' already exists (hearthfs volume remove {name})"
+        ));
     }
     // NOT plain "~/HearthFS": on case-insensitive volumes that resolves to
     // a "~/hearthfs" dir if one exists (such as a clone of this repo).
@@ -168,7 +172,11 @@ fn default_name(adapter: &adapters::AdapterSpec, fields: &HashMap<String, String
     let base = match adapter.kind {
         "folder" | "obsidian" | "logseq" | "gbrain" => fields
             .get("path")
-            .and_then(|p| PathBuf::from(p).file_name().map(|n| n.to_string_lossy().to_string()))
+            .and_then(|p| {
+                PathBuf::from(p)
+                    .file_name()
+                    .map(|n| n.to_string_lossy().to_string())
+            })
             .unwrap_or_else(|| adapter.kind.to_string()),
         "github" => fields
             .get("repos")
@@ -178,7 +186,11 @@ fn default_name(adapter: &adapters::AdapterSpec, fields: &HashMap<String, String
     };
     // Dot-directories (~/.gbrain) must not become hidden volume names.
     let cleaned = base.trim_start_matches('.');
-    let cleaned = if cleaned.is_empty() { adapter.kind } else { cleaned };
+    let cleaned = if cleaned.is_empty() {
+        adapter.kind
+    } else {
+        cleaned
+    };
     cleaned.to_lowercase().replace(' ', "-")
 }
 
@@ -236,7 +248,9 @@ pub fn mount(name: &str) -> Result<()> {
                         Some((u, r)) if !r.contains('/') => (u, Some(r)),
                         _ => (rest, None),
                     };
-                    adapters::prepare_git(url, gref)?.to_string_lossy().to_string()
+                    adapters::prepare_git(url, gref)?
+                        .to_string_lossy()
+                        .to_string()
                 }
                 None => spec.clone(),
             };

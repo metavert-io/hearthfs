@@ -8,7 +8,7 @@ pub mod inode_table;
 pub mod magic;
 pub mod passthrough;
 pub mod source;
-pub mod tokens;
 pub mod structure;
+pub mod tokens;
 pub mod vector_store;
 pub mod vfs;

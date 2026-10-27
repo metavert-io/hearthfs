@@ -116,7 +116,15 @@ pub fn fit(filename: &str, source: &[u8], budget: u64) -> String {
         }
     }
 
-    fill_sections(filename, source, &sections, &top, &mut remaining, &mut out, 4);
+    fill_sections(
+        filename,
+        source,
+        &sections,
+        &top,
+        &mut remaining,
+        &mut out,
+        4,
+    );
     out
 }
 
@@ -149,14 +157,18 @@ fn fill_sections(
 
         let child_depth = all
             .iter()
-            .filter(|c| c.start_byte >= section.start_byte && c.end_byte <= end && c.depth > section.depth)
+            .filter(|c| {
+                c.start_byte >= section.start_byte && c.end_byte <= end && c.depth > section.depth
+            })
             .map(|c| c.depth)
             .min();
         if let (Some(child_depth), true) = (child_depth, depth_left > 0) {
             let children: Vec<&Section> = all
                 .iter()
                 .filter(|c| {
-                    c.depth == child_depth && c.start_byte >= section.start_byte && c.end_byte <= end
+                    c.depth == child_depth
+                        && c.start_byte >= section.start_byte
+                        && c.end_byte <= end
                 })
                 .collect();
             // Intro: the section's own text before its first child.
@@ -167,7 +179,15 @@ fn fill_sections(
                 out.push_str(&String::from_utf8_lossy(intro));
                 *remaining = remaining.saturating_sub(intro_cost);
             }
-            fill_sections(filename, source, all, &children, remaining, out, depth_left - 1);
+            fill_sections(
+                filename,
+                source,
+                all,
+                &children,
+                remaining,
+                out,
+                depth_left - 1,
+            );
             continue;
         }
 
@@ -270,8 +290,12 @@ fn find_name_child(source: &[u8], node: &tree_sitter::Node<'_>) -> Option<String
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
         match child.kind() {
-            "name" | "identifier" | "type_identifier" | "property_identifier"
-            | "field_identifier" | "constant" => {
+            "name"
+            | "identifier"
+            | "type_identifier"
+            | "property_identifier"
+            | "field_identifier"
+            | "constant" => {
                 let text = child.utf8_text(source).ok()?;
                 return Some(text.to_string());
             }
@@ -281,11 +305,7 @@ fn find_name_child(source: &[u8], node: &tree_sitter::Node<'_>) -> Option<String
     None
 }
 
-fn find_child_by_kind(
-    source: &[u8],
-    node: &tree_sitter::Node<'_>,
-    kind: &str,
-) -> Option<String> {
+fn find_child_by_kind(source: &[u8], node: &tree_sitter::Node<'_>, kind: &str) -> Option<String> {
     let mut cursor = node.walk();
     for child in node.children(&mut cursor) {
         if child.kind() == kind {
@@ -297,8 +317,13 @@ fn find_child_by_kind(
 
 fn normalize_kind(kind: &str) -> String {
     match kind {
-        "function_item" | "function_definition" | "function_declaration" | "method"
-        | "method_definition" | "method_declaration" | "singleton_method"
+        "function_item"
+        | "function_definition"
+        | "function_declaration"
+        | "method"
+        | "method_definition"
+        | "method_declaration"
+        | "singleton_method"
         | "constructor_declaration" => "function".to_string(),
         "struct_item" | "struct_specifier" => "struct".to_string(),
         "enum_item" | "enum_declaration" | "enum_specifier" => "enum".to_string(),

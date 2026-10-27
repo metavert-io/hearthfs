@@ -148,7 +148,11 @@ impl McpSource {
     async fn notify(&self, method: &str) -> Result<()> {
         let notification = json!({"jsonrpc": "2.0", "method": method});
         match &self.transport {
-            Transport::Http { client, url, session } => {
+            Transport::Http {
+                client,
+                url,
+                session,
+            } => {
                 let mut req = client
                     .post(url)
                     .header("Accept", "application/json, text/event-stream")
@@ -171,7 +175,11 @@ impl McpSource {
 
     async fn roundtrip(&self, request: &Value, id: u64) -> Result<Value> {
         match &self.transport {
-            Transport::Http { client, url, session } => {
+            Transport::Http {
+                client,
+                url,
+                session,
+            } => {
                 let mut req = client
                     .post(url)
                     .header("Accept", "application/json, text/event-stream")
@@ -450,7 +458,10 @@ mod tests {
 
     #[test]
     fn filenames() {
-        assert_eq!(filename_for("My Notes", Some("text/markdown")), "My-Notes.md");
+        assert_eq!(
+            filename_for("My Notes", Some("text/markdown")),
+            "My-Notes.md"
+        );
         assert_eq!(filename_for("report.pdf", None), "report.pdf");
         assert_eq!(filename_for("data", Some("application/json")), "data.json");
         assert_eq!(filename_for("x/y:z", None), "x-y-z.txt");

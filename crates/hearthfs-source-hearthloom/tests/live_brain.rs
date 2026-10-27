@@ -16,7 +16,9 @@ use hearthfs_source_hearthloom::{HearthloomSource, DEFAULT_BASE_URL, ORIGIN_MARK
 
 async fn connect_or_skip() -> Option<HearthloomSource> {
     let Some(key) = HearthloomSource::load_key() else {
-        eprintln!("SKIP: no key at ~/.config/hearthfs/hearthloom.key (run: hearthfs auth hearthloom)");
+        eprintln!(
+            "SKIP: no key at ~/.config/hearthfs/hearthloom.key (run: hearthfs auth hearthloom)"
+        );
         return None;
     };
     match HearthloomSource::connect(DEFAULT_BASE_URL, &key).await {
@@ -35,7 +37,10 @@ async fn brain_mount_surface() {
     };
 
     // The brain owns its own index — mounts must never re-embed it.
-    assert!(src.skip_indexing(), "brain sources must skip local indexing");
+    assert!(
+        src.skip_indexing(),
+        "brain sources must skip local indexing"
+    );
     assert!(src.supports_search(), "manifest must advertise search");
 
     // Root: the tree the handoff doc promises.
@@ -49,7 +54,10 @@ async fn brain_mount_surface() {
     }
 
     // BRAIN.md: the "read this first" index, real content.
-    let brain = src.read(Path::new("BRAIN.md")).await.expect("read BRAIN.md");
+    let brain = src
+        .read(Path::new("BRAIN.md"))
+        .await
+        .expect("read BRAIN.md");
     let brain_text = String::from_utf8_lossy(&brain);
     assert!(
         brain_text.contains("BRAIN.md") || brain_text.contains("Hearthloom"),
@@ -58,13 +66,24 @@ async fn brain_mount_surface() {
 
     // Entities collection: names must be unique, non-empty, .md-suffixed —
     // duplicates or empties corrupt NFS READDIR replies (live bug 2026-07-11).
-    let entities = src.list(Path::new("entities")).await.expect("list entities");
+    let entities = src
+        .list(Path::new("entities"))
+        .await
+        .expect("list entities");
     assert!(!entities.is_empty(), "entities collection came back empty");
     let mut seen = std::collections::HashSet::new();
     for e in &entities {
-        assert!(e.name.ends_with(".md"), "entity entry without .md: {}", e.name);
+        assert!(
+            e.name.ends_with(".md"),
+            "entity entry without .md: {}",
+            e.name
+        );
         assert!(e.name.len() > 3, "empty entity slug: {:?}", e.name);
-        assert!(seen.insert(e.name.clone()), "duplicate entity entry: {}", e.name);
+        assert!(
+            seen.insert(e.name.clone()),
+            "duplicate entity entry: {}",
+            e.name
+        );
     }
 
     // Round-trip: every served name must be readable back (slug → id).

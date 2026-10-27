@@ -70,7 +70,9 @@ impl VectorStore {
             "CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);",
         )?;
         let current: Option<String> = conn
-            .query_row("SELECT value FROM meta WHERE key = 'model_id'", [], |r| r.get(0))
+            .query_row("SELECT value FROM meta WHERE key = 'model_id'", [], |r| {
+                r.get(0)
+            })
             .ok();
         if current.as_deref() != Some(model_id) {
             // Different model, or vectors of unknown provenance (store
@@ -162,8 +164,7 @@ impl VectorStore {
     /// Number of stored vectors.
     pub fn count(&self) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
-        let count: i64 =
-            conn.query_row("SELECT COUNT(*) FROM vectors", [], |row| row.get(0))?;
+        let count: i64 = conn.query_row("SELECT COUNT(*) FROM vectors", [], |row| row.get(0))?;
         Ok(count)
     }
 }
@@ -173,7 +174,9 @@ fn floats_to_bytes(v: &[f32]) -> Vec<u8> {
 }
 
 fn bytes_to_floats(b: &[u8]) -> Vec<f32> {
-    b.as_chunks::<4>().0.iter()
+    b.as_chunks::<4>()
+        .0
+        .iter()
         .map(|c| f32::from_le_bytes([c[0], c[1], c[2], c[3]]))
         .collect()
 }
@@ -185,9 +188,15 @@ mod tests {
     #[test]
     fn test_store_and_search() {
         let store = VectorStore::open(Path::new(":memory:"), 3).unwrap();
-        store.upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1").unwrap();
-        store.upsert_chunk("b.txt", 0, &[0.0, 1.0, 0.0], "h2").unwrap();
-        store.upsert_chunk("c.txt", 0, &[0.9, 0.1, 0.0], "h3").unwrap();
+        store
+            .upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1")
+            .unwrap();
+        store
+            .upsert_chunk("b.txt", 0, &[0.0, 1.0, 0.0], "h2")
+            .unwrap();
+        store
+            .upsert_chunk("c.txt", 0, &[0.9, 0.1, 0.0], "h3")
+            .unwrap();
 
         let results = store.search(&[1.0, 0.0, 0.0], 2).unwrap();
         assert_eq!(results.len(), 2);
@@ -198,12 +207,16 @@ mod tests {
     #[test]
     fn test_set_model_wipes_on_change_and_unknown_provenance() {
         let store = VectorStore::open(Path::new(":memory:"), 3).unwrap();
-        store.upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1").unwrap();
+        store
+            .upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1")
+            .unwrap();
         // Store predates model tracking: adopting a model must wipe.
         store.set_model("model-a").unwrap();
         assert_eq!(store.count().unwrap(), 0);
 
-        store.upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1").unwrap();
+        store
+            .upsert_chunk("a.txt", 0, &[1.0, 0.0, 0.0], "h1")
+            .unwrap();
         store.set_model("model-a").unwrap();
         assert_eq!(store.count().unwrap(), 1, "same model keeps vectors");
 
@@ -215,9 +228,15 @@ mod tests {
     fn test_file_scored_by_best_chunk() {
         let store = VectorStore::open(Path::new(":memory:"), 3).unwrap();
         // b.txt's best chunk beats a.txt's only chunk; each file appears once.
-        store.upsert_chunk("a.txt", 0, &[0.8, 0.2, 0.0], "h1").unwrap();
-        store.upsert_chunk("b.txt", 0, &[0.0, 1.0, 0.0], "h2").unwrap();
-        store.upsert_chunk("b.txt", 1, &[1.0, 0.0, 0.0], "h2").unwrap();
+        store
+            .upsert_chunk("a.txt", 0, &[0.8, 0.2, 0.0], "h1")
+            .unwrap();
+        store
+            .upsert_chunk("b.txt", 0, &[0.0, 1.0, 0.0], "h2")
+            .unwrap();
+        store
+            .upsert_chunk("b.txt", 1, &[1.0, 0.0, 0.0], "h2")
+            .unwrap();
 
         let results = store.search(&[1.0, 0.0, 0.0], 10).unwrap();
         assert_eq!(results.len(), 2);

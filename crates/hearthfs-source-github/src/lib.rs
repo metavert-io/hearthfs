@@ -89,7 +89,12 @@ impl GithubSource {
                 return Ok(serde_json::from_slice(data)?);
             }
         }
-        let resp = self.client.get(url).send().await.context("GitHub request failed")?;
+        let resp = self
+            .client
+            .get(url)
+            .send()
+            .await
+            .context("GitHub request failed")?;
         match resp.status().as_u16() {
             401 => {
                 return Err(anyhow!(
@@ -127,7 +132,9 @@ impl GithubSource {
         }
         let (owner, repo) = (&parts[0], &parts[1]);
         if !self.repos.iter().any(|(o, r)| o == owner && r == repo) {
-            return Err(anyhow!("repo {owner}/{repo} is not configured on this mount"));
+            return Err(anyhow!(
+                "repo {owner}/{repo} is not configured on this mount"
+            ));
         }
         Ok((owner.clone(), repo.clone(), parts[2..].join("/")))
     }
@@ -255,7 +262,10 @@ impl Source for GithubSource {
             return Ok(Self::dir_meta());
         }
         Ok(SourceMeta {
-            size: json.get("size").and_then(|s| s.as_u64()).unwrap_or(1024 * 1024),
+            size: json
+                .get("size")
+                .and_then(|s| s.as_u64())
+                .unwrap_or(1024 * 1024),
             is_dir: false,
             modified: SystemTime::now(),
             created: SystemTime::now(),

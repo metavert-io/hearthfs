@@ -9,7 +9,11 @@ mod adapters;
 mod volumes;
 
 #[derive(Parser)]
-#[command(name = "hearthfs", version, about = "Local-first semantic filesystem for AI agents")]
+#[command(
+    name = "hearthfs",
+    version,
+    about = "Local-first semantic filesystem for AI agents"
+)]
 struct Cli {
     #[command(subcommand)]
     command: Command,
@@ -127,7 +131,10 @@ async fn main() -> Result<()> {
         }
         Command::Adapters { json } => {
             if json {
-                println!("{}", serde_json::to_string_pretty(&adapters::registry_json())?);
+                println!(
+                    "{}",
+                    serde_json::to_string_pretty(&adapters::registry_json())?
+                );
             } else {
                 for a in adapters::registry() {
                     let auth = match &a.secret {
@@ -211,11 +218,7 @@ async fn main() -> Result<()> {
                 // cloud brain's PAT live separately from the local one),
                 // then the default hearthloom key file.
                 let key = api_key
-                    .or_else(|| {
-                        auth_service
-                            .as_deref()
-                            .and_then(load_service_key)
-                    })
+                    .or_else(|| auth_service.as_deref().and_then(load_service_key))
                     .or_else(hearthfs_source_hearthloom::HearthloomSource::load_key)
                     .ok_or_else(|| {
                         anyhow::anyhow!(
@@ -225,8 +228,7 @@ async fn main() -> Result<()> {
                     })?;
                 tracing::info!("connecting to hearthloom at {base_url}");
                 Arc::new(
-                    hearthfs_source_hearthloom::HearthloomSource::connect(&base_url, &key)
-                        .await?,
+                    hearthfs_source_hearthloom::HearthloomSource::connect(&base_url, &key).await?,
                 )
             } else if let Some(repos) = source.strip_prefix("github:") {
                 let key = api_key
@@ -241,11 +243,7 @@ async fn main() -> Result<()> {
                 Arc::new(hearthfs_source_github::GithubSource::connect(repos, &key)?)
             } else if let Some(url) = source.strip_prefix("api:") {
                 // Generic manifest-driven source — the open integration point.
-                let key = api_key.or_else(|| {
-                    auth_service
-                        .as_deref()
-                        .and_then(load_service_key)
-                });
+                let key = api_key.or_else(|| auth_service.as_deref().and_then(load_service_key));
                 let auth = key.map(|k| format!("Bearer {}", k.trim()));
                 tracing::info!("connecting to manifest API at {url}");
                 Arc::new(
@@ -259,11 +257,7 @@ async fn main() -> Result<()> {
             } else if let Some(spec) = source.strip_prefix("mcp:") {
                 // MCP server resources as files; local indexing gives them
                 // semantic search MCP doesn't natively have.
-                let key = api_key.or_else(|| {
-                    auth_service
-                        .as_deref()
-                        .and_then(load_service_key)
-                });
+                let key = api_key.or_else(|| auth_service.as_deref().and_then(load_service_key));
                 tracing::info!("connecting to MCP server");
                 Arc::new(hearthfs_source_mcp::McpSource::connect(spec, key).await?)
             } else if let Some(rest) = source.strip_prefix("git:") {
@@ -304,8 +298,9 @@ async fn main() -> Result<()> {
             let event_log = Arc::new(hearthfs_core::event_log::EventLog::open(&log_path)?);
 
             // Build VFS
-            let mut vfs_builder = hearthfs_core::passthrough::PassthroughVfs::new(source_arc.clone())
-                .with_event_log(event_log.clone());
+            let mut vfs_builder =
+                hearthfs_core::passthrough::PassthroughVfs::new(source_arc.clone())
+                    .with_event_log(event_log.clone());
 
             // Only set up local FTS/embeddings for non-smart sources
             let fts;
@@ -327,9 +322,9 @@ async fn main() -> Result<()> {
                     Ok(embedder) => {
                         let dim = embedder.dim();
                         let vec_path = db_dir.join("vectors.db");
-                        let vectors = Arc::new(
-                            hearthfs_core::vector_store::VectorStore::open(&vec_path, dim)?,
-                        );
+                        let vectors = Arc::new(hearthfs_core::vector_store::VectorStore::open(
+                            &vec_path, dim,
+                        )?);
                         // Wipes stale vectors if the model changed.
                         vectors.set_model(embedder.id())?;
                         let embedder = Arc::new(embedder);
@@ -408,10 +403,7 @@ async fn main() -> Result<()> {
 
             let mount_mp = mountpoint.clone();
             let mount_args = build_mount_args(listen_ip, listen_port, &mount_mp);
-            tracing::info!(
-                "Mount with: mount_nfs {}",
-                mount_args.join(" ")
-            );
+            tracing::info!("Mount with: mount_nfs {}", mount_args.join(" "));
 
             tokio::spawn(async move {
                 tokio::time::sleep(std::time::Duration::from_millis(200)).await;
@@ -487,11 +479,7 @@ async fn main() -> Result<()> {
                     if fts_path.exists() {
                         let fts = hearthfs_core::fts::FtsIndex::open(&fts_path)?;
                         let count = fts.file_count()?;
-                        println!(
-                            "  {} — {} files indexed",
-                            entry.path().display(),
-                            count
-                        );
+                        println!("  {} — {} files indexed", entry.path().display(), count);
                         found = true;
                     }
                 }
@@ -585,7 +573,9 @@ fn store_api_key(service: &str) -> Result<()> {
         .into_iter()
         .find_map(|a| a.secret.filter(|s| s.service == service));
     if spec.is_none() {
-        eprintln!("(custom key name '{service}' — reference it from an api volume's Key name field)");
+        eprintln!(
+            "(custom key name '{service}' — reference it from an api volume's Key name field)"
+        );
     }
     let key_path = secret_key_path(service)
         .ok_or_else(|| anyhow::anyhow!("cannot determine home directory"))?;
@@ -697,7 +687,9 @@ fn force_unmount(path: &str) {
         vec![path.to_string()],
         vec!["-f".to_string(), path.to_string()],
     ] {
-        let _ = std::process::Command::new("/sbin/umount").args(&args).output();
+        let _ = std::process::Command::new("/sbin/umount")
+            .args(&args)
+            .output();
         if !is_mounted_at(path) {
             return;
         }
@@ -758,7 +750,11 @@ mod tests {
         let args = build_mount_args(std::net::IpAddr::V4(NFS_BIND_IP), 11111, "/tmp/mnt");
         assert_eq!(args[2], "127.0.0.1:/");
         assert_eq!(args[3], "/tmp/mnt");
-        assert!(args[1].contains("port=11111,mountport=11111"), "{}", args[1]);
+        assert!(
+            args[1].contains("port=11111,mountport=11111"),
+            "{}",
+            args[1]
+        );
         // The wedge-incident invariant: never a hard mount.
         assert!(args[1].starts_with("soft,deadtimeout=15,"), "{}", args[1]);
     }
@@ -771,9 +767,10 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let source = Arc::new(hearthfs_source_fs::FsSource::new(dir.clone()).unwrap());
         let vfs = Arc::new(hearthfs_core::passthrough::PassthroughVfs::new(source));
-        let listener = NFSTcpListener::bind_ro(&nfs_bind_addr(0), hearthfs_nfs::HearthNfs::new(vfs))
-            .await
-            .unwrap();
+        let listener =
+            NFSTcpListener::bind_ro(&nfs_bind_addr(0), hearthfs_nfs::HearthNfs::new(vfs))
+                .await
+                .unwrap();
         let port = listener.get_listen_port();
         assert!(listener.get_listen_ip().is_loopback());
 
@@ -786,7 +783,10 @@ mod tests {
             .map(|r| r.is_ok())
             .unwrap_or(false)
         };
-        assert!(connect(std::net::IpAddr::V4(NFS_BIND_IP)).await, "loopback must connect");
+        assert!(
+            connect(std::net::IpAddr::V4(NFS_BIND_IP)).await,
+            "loopback must connect"
+        );
 
         // This machine's outbound address, if it has one. A UDP "connect"
         // only selects a route; it sends nothing.

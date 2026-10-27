@@ -190,8 +190,15 @@ mod tests {
             .unwrap();
         log.record("fs", "read", Some("/b.rs"), None, None, Some(15))
             .unwrap();
-        log.record("fs", "magic_read", Some("/a.rs@tokens"), None, Some(100), Some(2))
-            .unwrap();
+        log.record(
+            "fs",
+            "magic_read",
+            Some("/a.rs@tokens"),
+            None,
+            Some(100),
+            Some(2),
+        )
+        .unwrap();
         log.record("query", "search", None, None, None, Some(30))
             .unwrap();
         log.record("index", "file_indexed", Some("/a.rs"), None, None, Some(50))

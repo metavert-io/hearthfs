@@ -159,13 +159,16 @@ impl FtsIndex {
         // Over-fetch chunk rows so dedup still yields `limit` distinct files.
         let chunk_limit = (limit * 10) as i64;
         let mut results: Vec<SearchResult> = Vec::new();
-        let rows = stmt.query_map(rusqlite::params![match_expr, chunk_limit, path_weight], |row| {
-            Ok(SearchResult {
-                path: row.get(0)?,
-                snippet: row.get(1)?,
-                rank: row.get(2)?,
-            })
-        })?;
+        let rows = stmt.query_map(
+            rusqlite::params![match_expr, chunk_limit, path_weight],
+            |row| {
+                Ok(SearchResult {
+                    path: row.get(0)?,
+                    snippet: row.get(1)?,
+                    rank: row.get(2)?,
+                })
+            },
+        )?;
         for row in rows {
             let row = row?;
             // Rows arrive best-first; keep only each file's best chunk.
@@ -194,8 +197,7 @@ impl FtsIndex {
     /// Get the stored token estimate for an indexed file.
     pub fn token_estimate(&self, path: &str) -> Result<Option<i64>> {
         let conn = self.conn.lock().unwrap();
-        let mut stmt =
-            conn.prepare("SELECT token_estimate FROM indexed_files WHERE path = ?1")?;
+        let mut stmt = conn.prepare("SELECT token_estimate FROM indexed_files WHERE path = ?1")?;
         let mut rows = stmt.query([path])?;
         Ok(rows.next()?.map(|row| row.get(0)).transpose()?)
     }
@@ -203,11 +205,8 @@ impl FtsIndex {
     /// Get number of indexed files.
     pub fn file_count(&self) -> Result<i64> {
         let conn = self.conn.lock().unwrap();
-        let count: i64 = conn.query_row(
-            "SELECT COUNT(*) FROM indexed_files",
-            [],
-            |row| row.get(0),
-        )?;
+        let count: i64 =
+            conn.query_row("SELECT COUNT(*) FROM indexed_files", [], |row| row.get(0))?;
         Ok(count)
     }
 }
@@ -234,10 +233,10 @@ fn sanitize_term(term: &str) -> String {
 /// Returns None if nothing survives stopword filtering.
 fn or_fallback_query(query: &str) -> Option<String> {
     const STOPWORDS: &[&str] = &[
-        "a", "an", "and", "are", "as", "at", "be", "but", "by", "did", "do", "does", "for",
-        "from", "had", "has", "have", "how", "in", "is", "it", "its", "of", "on", "or", "that",
-        "the", "their", "them", "then", "there", "these", "they", "this", "to", "was", "were",
-        "what", "when", "where", "which", "who", "whom", "why", "will", "with",
+        "a", "an", "and", "are", "as", "at", "be", "but", "by", "did", "do", "does", "for", "from",
+        "had", "has", "have", "how", "in", "is", "it", "its", "of", "on", "or", "that", "the",
+        "their", "them", "then", "there", "these", "they", "this", "to", "was", "were", "what",
+        "when", "where", "which", "who", "whom", "why", "will", "with",
     ];
     let terms: Vec<String> = query
         .split_whitespace()
@@ -259,8 +258,12 @@ mod tests {
     #[test]
     fn test_index_and_search() {
         let idx = FtsIndex::open(Path::new(":memory:")).unwrap();
-        idx.index_file("src/main.rs", "fn main() { println!(\"hello\"); }", "abc123")
-            .unwrap();
+        idx.index_file(
+            "src/main.rs",
+            "fn main() { println!(\"hello\"); }",
+            "abc123",
+        )
+        .unwrap();
         idx.index_file(
             "src/auth.rs",
             "fn authenticate(user: &str) { verify_token(user); }",

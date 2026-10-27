@@ -186,7 +186,10 @@ impl ApiSource {
     /// Check cache for a key.
     fn cache_get(&self, key: &str) -> Option<Vec<u8>> {
         let cache = self.cache.read().unwrap();
-        cache.get(key).filter(|e| e.is_fresh()).map(|e| e.data.clone())
+        cache
+            .get(key)
+            .filter(|e| e.is_fresh())
+            .map(|e| e.data.clone())
     }
 
     /// Store in cache.
@@ -275,9 +278,7 @@ impl ApiSource {
         if let Some((parent, _)) = path_str.rsplit_once('/') {
             let parent_prefix = format!("{parent}/");
             if let Some(node) = find_collection_for_parent(&self.manifest.tree, &parent_prefix) {
-                if let Some(item_template) =
-                    node.source.as_ref().and_then(|s| s.item.as_ref())
-                {
+                if let Some(item_template) = node.source.as_ref().and_then(|s| s.item.as_ref()) {
                     let slug = path
                         .file_name()
                         .ok_or_else(|| anyhow!("no filename in path"))?
@@ -285,8 +286,7 @@ impl ApiSource {
                     let id = self.resolve_item_id(node, &slug, &HashMap::new()).await?;
                     let mut vars = HashMap::new();
                     vars.insert("id".to_string(), id.clone());
-                    if let Some(id_field) =
-                        node.source.as_ref().and_then(|s| s.id_field.as_deref())
+                    if let Some(id_field) = node.source.as_ref().and_then(|s| s.id_field.as_deref())
                     {
                         vars.insert(id_field.to_string(), id);
                     }
@@ -381,11 +381,7 @@ impl ApiSource {
     }
 
     /// Convert JSON items to directory entries using slug_from field.
-    fn items_to_entries(
-        &self,
-        node: &TreeNode,
-        items: &[serde_json::Value],
-    ) -> Vec<SourceEntry> {
+    fn items_to_entries(&self, node: &TreeNode, items: &[serde_json::Value]) -> Vec<SourceEntry> {
         let source = match &node.source {
             Some(s) => s,
             None => return vec![],
@@ -591,7 +587,9 @@ impl Source for ApiSource {
         }
 
         if let Some((endpoint, wants_md, ttl)) = self.endpoint_for(path, &path_str).await? {
-            let data = self.fetch(&with_budget(&endpoint, budget), wants_md).await?;
+            let data = self
+                .fetch(&with_budget(&endpoint, budget), wants_md)
+                .await?;
             self.cache_set(cache_key, data.clone(), ttl);
             return Ok(Some(Bytes::from(data)));
         }
@@ -623,9 +621,8 @@ impl Source for ApiSource {
             // e.g., /people/jane-doe.md (leaf, no children) → file
             //       /intents/active (has children: {slug}.md) → directory
             //       /panels/research (has children: summary.md, items/) → directory
-            let is_concrete_leaf = node.node_type == "collection"
-                && !vars.is_empty()
-                && node.children.is_empty();
+            let is_concrete_leaf =
+                node.node_type == "collection" && !vars.is_empty() && node.children.is_empty();
             let is_dir = if is_concrete_leaf {
                 false
             } else {
@@ -642,7 +639,11 @@ impl Source for ApiSource {
 
         // Check if it's a parent directory of tree nodes
         let prefix = format!("{path_str}/");
-        let has_children = self.manifest.tree.iter().any(|n| n.path.starts_with(&prefix))
+        let has_children = self
+            .manifest
+            .tree
+            .iter()
+            .any(|n| n.path.starts_with(&prefix))
             || self.manifest.tree.iter().any(|n| {
                 // Check nested children too
                 has_descendant(&n.children, &prefix)
@@ -721,12 +722,11 @@ impl Source for ApiSource {
         let body: serde_json::Value = resp.json().await?;
         let items = match &body {
             serde_json::Value::Array(arr) => arr.clone(),
-            serde_json::Value::Object(obj) => {
-                obj.get("results")
-                    .and_then(|v| v.as_array())
-                    .cloned()
-                    .unwrap_or_default()
-            }
+            serde_json::Value::Object(obj) => obj
+                .get("results")
+                .and_then(|v| v.as_array())
+                .cloned()
+                .unwrap_or_default(),
             _ => vec![],
         };
         let results = items
@@ -868,7 +868,11 @@ fn resolve_in_tree_with_prefix<'a>(
         let full_path = if parent_prefix.is_empty() {
             node.path.clone()
         } else {
-            format!("{}/{}", parent_prefix.trim_end_matches('/'), node.path.trim_start_matches('/'))
+            format!(
+                "{}/{}",
+                parent_prefix.trim_end_matches('/'),
+                node.path.trim_start_matches('/')
+            )
         };
         let full_path = full_path.trim_end_matches('/').to_string();
         let mut vars = HashMap::new();
@@ -999,9 +1003,9 @@ fn find_collection_for_parent<'a>(nodes: &'a [TreeNode], prefix: &str) -> Option
 }
 
 fn has_descendant(nodes: &[TreeNode], prefix: &str) -> bool {
-    nodes.iter().any(|n| {
-        n.path.starts_with(prefix) || has_descendant(&n.children, prefix)
-    })
+    nodes
+        .iter()
+        .any(|n| n.path.starts_with(prefix) || has_descendant(&n.children, prefix))
 }
 
 #[cfg(test)]
@@ -1023,15 +1027,27 @@ mod tests {
         assert!(vars.is_empty());
 
         vars.clear();
-        assert!(match_template("/people/{slug}.md", "/people/jane-doe.md", &mut vars));
+        assert!(match_template(
+            "/people/{slug}.md",
+            "/people/jane-doe.md",
+            &mut vars
+        ));
         assert_eq!(vars.get("slug").unwrap(), "jane-doe");
 
         vars.clear();
-        assert!(match_template("/panels/{name}", "/panels/research", &mut vars));
+        assert!(match_template(
+            "/panels/{name}",
+            "/panels/research",
+            &mut vars
+        ));
         assert_eq!(vars.get("name").unwrap(), "research");
 
         vars.clear();
-        assert!(!match_template("/people/{slug}.md", "/panels/research", &mut vars));
+        assert!(!match_template(
+            "/people/{slug}.md",
+            "/panels/research",
+            &mut vars
+        ));
     }
 
     #[test]
@@ -1062,7 +1078,10 @@ mod tests {
 
     #[test]
     fn test_with_budget() {
-        assert_eq!(with_budget("/brain/BRAIN.md", 2000), "/brain/BRAIN.md?budget=2000");
+        assert_eq!(
+            with_budget("/brain/BRAIN.md", 2000),
+            "/brain/BRAIN.md?budget=2000"
+        );
         assert_eq!(
             with_budget("/brain/days/2026-07-11.md?detail=full", 500),
             "/brain/days/2026-07-11.md?detail=full&budget=500"

@@ -105,7 +105,10 @@ impl Indexer {
         }
         if let Some(vectors) = &self.vectors {
             if let Err(e) = vectors.remove_file(&path_str) {
-                warn!("failed to drop {} from the vector index: {e}", path.display());
+                warn!(
+                    "failed to drop {} from the vector index: {e}",
+                    path.display()
+                );
             }
         }
     }
@@ -215,12 +218,76 @@ fn is_env_file(name: &str) -> bool {
 /// snippets. Templates such as `.env.example` are indexed.
 fn is_text_file(name: &str) -> bool {
     let text_extensions = [
-        "txt", "md", "rs", "py", "js", "ts", "tsx", "jsx", "go", "java", "c", "h", "cpp", "hpp",
-        "cc", "hh", "rb", "sh", "bash", "zsh", "fish", "toml", "yaml", "yml", "json", "xml",
-        "html", "css", "scss", "less", "sql", "r", "R", "swift", "kt", "kts", "scala", "clj",
-        "ex", "exs", "erl", "hs", "ml", "mli", "lua", "vim", "el", "lisp", "scm", "rkt",
-        "dockerfile", "makefile", "cmake", "gradle", "conf", "cfg", "ini", "csv", "tsv",
-        "log", "diff", "patch", "tex", "bib", "rst", "adoc", "org", "eml", "ics", "vcf",
+        "txt",
+        "md",
+        "rs",
+        "py",
+        "js",
+        "ts",
+        "tsx",
+        "jsx",
+        "go",
+        "java",
+        "c",
+        "h",
+        "cpp",
+        "hpp",
+        "cc",
+        "hh",
+        "rb",
+        "sh",
+        "bash",
+        "zsh",
+        "fish",
+        "toml",
+        "yaml",
+        "yml",
+        "json",
+        "xml",
+        "html",
+        "css",
+        "scss",
+        "less",
+        "sql",
+        "r",
+        "R",
+        "swift",
+        "kt",
+        "kts",
+        "scala",
+        "clj",
+        "ex",
+        "exs",
+        "erl",
+        "hs",
+        "ml",
+        "mli",
+        "lua",
+        "vim",
+        "el",
+        "lisp",
+        "scm",
+        "rkt",
+        "dockerfile",
+        "makefile",
+        "cmake",
+        "gradle",
+        "conf",
+        "cfg",
+        "ini",
+        "csv",
+        "tsv",
+        "log",
+        "diff",
+        "patch",
+        "tex",
+        "bib",
+        "rst",
+        "adoc",
+        "org",
+        "eml",
+        "ics",
+        "vcf",
     ];
 
     // Check extension
@@ -276,7 +343,13 @@ mod tests {
 
     #[test]
     fn env_files_are_not_indexed() {
-        for secret in [".env", "app/.env", ".env.local", ".env.production", "prod.env"] {
+        for secret in [
+            ".env",
+            "app/.env",
+            ".env.local",
+            ".env.production",
+            "prod.env",
+        ] {
             assert!(!is_text_file(secret), "{secret} must not be indexed");
             assert!(is_env_file(secret), "{secret} is an env file");
         }
@@ -326,7 +399,8 @@ mod tests {
         std::fs::create_dir_all(&dir).unwrap();
         let fts = Arc::new(FtsIndex::open(&dir.join("fts.db")).unwrap());
         // An index cache built by an older version still holds the secret.
-        fts.index_file(".env", "API_TOKEN=hunter2secret", "stale").unwrap();
+        fts.index_file(".env", "API_TOKEN=hunter2secret", "stale")
+            .unwrap();
         assert_eq!(fts.search("hunter2secret", 10).unwrap().len(), 1);
 
         let source = Arc::new(MemSource(vec![

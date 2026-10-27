@@ -62,8 +62,7 @@ fn no_default() -> Option<String> {
 /// First Obsidian vault path from the app's own vault registry.
 fn obsidian_default() -> Option<String> {
     let home = std::env::var("HOME").ok()?;
-    let reg = PathBuf::from(&home)
-        .join("Library/Application Support/obsidian/obsidian.json");
+    let reg = PathBuf::from(&home).join("Library/Application Support/obsidian/obsidian.json");
     let json: serde_json::Value = serde_json::from_str(&std::fs::read_to_string(reg).ok()?).ok()?;
     json.get("vaults")?
         .as_object()?
@@ -329,7 +328,11 @@ pub fn find(kind: &str) -> Result<AdapterSpec> {
         .ok_or_else(|| {
             anyhow!(
                 "unknown adapter '{kind}' (available: {})",
-                registry().iter().map(|a| a.kind).collect::<Vec<_>>().join(", ")
+                registry()
+                    .iter()
+                    .map(|a| a.kind)
+                    .collect::<Vec<_>>()
+                    .join(", ")
             )
         })
 }
@@ -489,7 +492,10 @@ mod tests {
     use super::*;
 
     fn fields(pairs: &[(&str, &str)]) -> HashMap<String, String> {
-        pairs.iter().map(|(k, v)| (k.to_string(), v.to_string())).collect()
+        pairs
+            .iter()
+            .map(|(k, v)| (k.to_string(), v.to_string()))
+            .collect()
     }
 
     #[test]

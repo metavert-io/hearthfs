@@ -152,7 +152,11 @@ fn corpus_name(dir: &Path) -> String {
 #[tokio::main]
 async fn main() -> Result<()> {
     let args: Vec<String> = std::env::args().skip(1).collect();
-    let root = PathBuf::from(args.first().filter(|a| !a.starts_with("--")).context(USAGE)?);
+    let root = PathBuf::from(
+        args.first()
+            .filter(|a| !a.starts_with("--"))
+            .context(USAGE)?,
+    );
     let use_embeddings = !args.iter().any(|a| a == "--no-embeddings");
     let corpus_filter: Option<Vec<String>> = args
         .iter()
@@ -217,7 +221,9 @@ async fn main() -> Result<()> {
     let mut family_tallies: Vec<(String, Tally)> = Vec::new();
 
     println!("# Retrieval eval — HearthFS\n");
-    println!("| corpus | files | n | hit@1 | hit@5 | hit@10 | hit@20 | hit@40 | all-gold@20 | MRR |");
+    println!(
+        "| corpus | files | n | hit@1 | hit@5 | hit@10 | hit@20 | hit@40 | all-gold@20 | MRR |"
+    );
     println!("|---|---|---|---|---|---|---|---|---|---|");
 
     for corpus in &corpora {
@@ -242,10 +248,8 @@ async fn main() -> Result<()> {
                     .chars()
                     .map(|c| if c.is_alphanumeric() { c } else { '-' })
                     .collect();
-                let store = VectorStore::open(
-                    &index_dir.join(format!("vectors-{sanitized}.db")),
-                    e.dim(),
-                )?;
+                let store =
+                    VectorStore::open(&index_dir.join(format!("vectors-{sanitized}.db")), e.dim())?;
                 store.set_model(e.id())?;
                 Some(Arc::new(store))
             }

@@ -101,10 +101,7 @@ mod tests {
 
     #[test]
     fn test_search() {
-        assert_eq!(
-            parse("@search/auth flows"),
-            MagicPath::Search("auth flows")
-        );
+        assert_eq!(parse("@search/auth flows"), MagicPath::Search("auth flows"));
         assert_eq!(parse("@search"), MagicPath::Search(""));
     }
 }

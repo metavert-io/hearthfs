@@ -11,8 +11,8 @@ use crate::fts::FtsIndex;
 use crate::inode_table::InodeTable;
 use crate::magic::{self, MagicPath};
 use crate::source::{Source, SourceMeta};
-use crate::vector_store::VectorStore;
 use crate::tokens;
+use crate::vector_store::VectorStore;
 
 /// Metadata cached per inode, suitable for NFS getattr.
 #[derive(Debug, Clone)]
@@ -124,12 +124,7 @@ impl PassthroughVfs {
     /// Lookup a child by name in a parent directory, returning its inode + metadata.
     pub async fn lookup(&self, parent_inode: u64, name: &str) -> Result<EntryMeta> {
         // If the parent is a search directory, the child name IS the query
-        let search_parent = self
-            .search_dirs
-            .read()
-            .unwrap()
-            .get(&parent_inode)
-            .cloned();
+        let search_parent = self.search_dirs.read().unwrap().get(&parent_inode).cloned();
         if let Some(search_parent) = search_parent {
             let content = self.generate_search(&search_parent, name).await?;
             return Ok(self.register_virtual_file(
@@ -182,10 +177,7 @@ impl PassthroughVfs {
             }
             MagicPath::Tokens(real_name) => {
                 let content = self.generate_tokens(&parent_path, real_name).await?;
-                Ok(self.register_virtual_file(
-                    &format!("__virtual__/{}", name),
-                    &content,
-                ))
+                Ok(self.register_virtual_file(&format!("__virtual__/{}", name), &content))
             }
             MagicPath::Search(_query) => {
                 // `@search` → return a virtual directory
@@ -194,10 +186,7 @@ impl PassthroughVfs {
             }
             MagicPath::Outline(real_name) => {
                 let content = self.generate_outline(&parent_path, real_name).await?;
-                Ok(self.register_virtual_file(
-                    &format!("__virtual__/{}", name),
-                    &content,
-                ))
+                Ok(self.register_virtual_file(&format!("__virtual__/{}", name), &content))
             }
             MagicPath::Section(real_name, _section_name) => {
                 // `file@section` → return a virtual directory
@@ -211,10 +200,7 @@ impl PassthroughVfs {
             }
             MagicPath::Summary(_) => {
                 let content = b"@summary not yet implemented (requires LLM).\n".to_vec();
-                Ok(self.register_virtual_file(
-                    &format!("__virtual__/{}", name),
-                    &content,
-                ))
+                Ok(self.register_virtual_file(&format!("__virtual__/{}", name), &content))
             }
         }
     }
@@ -531,10 +517,10 @@ impl PassthroughVfs {
         let virtual_path: PathBuf =
             format!("__sectiondir__/{}/{name}", real_parent.display()).into();
         let inode = self.inodes.get_or_insert(&virtual_path);
-        self.section_dirs
-            .write()
-            .unwrap()
-            .insert(inode, (real_parent.to_path_buf(), real_filename.to_string()));
+        self.section_dirs.write().unwrap().insert(
+            inode,
+            (real_parent.to_path_buf(), real_filename.to_string()),
+        );
         EntryMeta {
             inode,
             size: 0,
@@ -545,18 +531,13 @@ impl PassthroughVfs {
     }
 
     /// Register a virtual fit directory and return its metadata.
-    fn register_fit_dir(
-        &self,
-        real_parent: &Path,
-        real_filename: &str,
-        name: &str,
-    ) -> EntryMeta {
+    fn register_fit_dir(&self, real_parent: &Path, real_filename: &str, name: &str) -> EntryMeta {
         let virtual_path: PathBuf = format!("__fitdir__/{}/{name}", real_parent.display()).into();
         let inode = self.inodes.get_or_insert(&virtual_path);
-        self.fit_dirs
-            .write()
-            .unwrap()
-            .insert(inode, (real_parent.to_path_buf(), real_filename.to_string()));
+        self.fit_dirs.write().unwrap().insert(
+            inode,
+            (real_parent.to_path_buf(), real_filename.to_string()),
+        );
         EntryMeta {
             inode,
             size: 0,

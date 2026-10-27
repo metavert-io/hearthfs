@@ -32,9 +32,11 @@ pub extern "C" fn hfs_root_inode() -> u64 {
 /// `source_dir` and `db_dir` must each be null or a valid NUL-terminated
 /// string.
 #[no_mangle]
-pub unsafe extern "C" fn hfs_open(source_dir: *const c_char, db_dir: *const c_char) -> *mut HfsHandle {
-    let (Some(source_dir), Some(db_dir)) = (cstr_to_path(source_dir), cstr_to_path(db_dir))
-    else {
+pub unsafe extern "C" fn hfs_open(
+    source_dir: *const c_char,
+    db_dir: *const c_char,
+) -> *mut HfsHandle {
+    let (Some(source_dir), Some(db_dir)) = (cstr_to_path(source_dir), cstr_to_path(db_dir)) else {
         return std::ptr::null_mut();
     };
 
