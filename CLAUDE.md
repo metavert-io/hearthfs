@@ -8,22 +8,27 @@ are expensive to rediscover. `docs/architecture.md` describes the system.
 If a `CLAUDE.local.md` exists next to this file, read it too: it holds a
 maintainer's local notes, which are not part of the repository.
 
-## Build checks (run all three before calling anything done)
+## Build checks (run all of these before calling anything done)
 
 ```
+cargo fmt --all
 cargo build --workspace
-cargo clippy --workspace --all-targets
+cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
 The macOS app and FSKit extension build separately: `./fskit/build.sh`
 (see "FSKit build" below and fskit/README.md).
 
-GitHub Actions runs the three checks on macOS, plus cargo-deny's licence
-and source checks, for every push to `main` and every pull request
-(`.github/workflows/ci.yml`; clippy warnings don't fail it). CodeQL
+GitHub Actions runs the same checks on macOS (formatting, and clippy with
+warnings as errors, included), plus cargo-deny's licence and source
+checks, for every push to `main` and every pull request
+(`.github/workflows/ci.yml`). It uses the newest stable Rust, so a Rust
+release can add clippy lints that fail it until they are fixed. CodeQL
 (`codeql.yml`) also compiles the FSKit app, unsigned, so a Swift build
-break shows up there. Check `gh run list` after pushing.
+break shows up there. `audit.yml` checks Cargo.lock against RustSec when
+dependencies change and once a week; `deny.toml` holds the advisory
+policy and its reasoned ignores. Check `gh run list` after pushing.
 
 ## Benchmarks and retrieval evals
 

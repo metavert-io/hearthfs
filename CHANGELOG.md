@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+- **Security: dependencies patched for nine RustSec vulnerabilities and
+  two soundness bugs.** rustls 0.23.46, rustls-webpki 0.103.16 and
+  webpki-roots 1.0.11 fix TLS flaws in the HTTPS client the Voyage
+  embedder uses (handshake messages accepted across encryption levels, a
+  downgrade to classical key exchange, distrusted intermediates and roots
+  accepted, session secrets in `Debug` output). Also h2 0.4.20,
+  crossbeam-epoch 0.9.21, tract 0.21.19, tokio 1.54.1 and anyhow 1.0.104.
+  CI now checks Cargo.lock against the RustSec database when dependencies
+  change and every week.
 - **Security: the NFS server is loopback-only.** It now binds 127.0.0.1
   and the kernel mounts `127.0.0.1:/`. Until now it bound 0.0.0.0 and
   mounted through the machine's LAN IP (a workaround for an early macOS 26
