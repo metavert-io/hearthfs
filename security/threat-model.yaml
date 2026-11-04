@@ -1,0 +1,58 @@
+# Threat model, maintained with the Security Steward (format steward-tm/0.1).
+# IDs are permanent: retire a threat instead of deleting it, and never reuse a number.
+schema: steward-tm/0.1
+project: metavert-io/hearthfs
+prefix: HF
+model_version: 1
+reviewed_at_commit: 25f3c03f02055523ecfb4bd2b3697e1f85e3b42c
+refs:
+  asi: "2026"
+  linddun: privacy
+  stride: default
+summary: A read-only filesystem view of a Hearthloom brain for agents, mounted on the owner's machine. By design, whatever can read the mount can read the brain's non-private content.
+components:
+  - id: C1
+    name: The read-only mount
+    kind: service
+    exposure: local
+  - id: C2
+    name: Brain content served through it
+    kind: data
+  - id: C3
+    name: The Hearthloom key the mount uses
+    kind: secret
+  - id: C4
+    name: CI and dependencies
+    kind: infrastructure
+assumptions:
+  - id: A1
+    text: Only processes the owner chooses can read the mount; private brain content is never served.
+threats:
+  - id: T-HF-0001
+    title: Any agent given the mount can read and exfiltrate all non-private brain content
+    targets:
+      - C1
+      - C2
+    tags:
+      - STRIDE:I
+      - LINDDUN:data-disclosure
+      - ASI02
+    status: open
+    note: Inherent to the design; decide per agent whether it gets the mount.
+  - id: T-HF-0002
+    title: A dependency from an unknown registry or git source enters the build
+    targets:
+      - C4
+    tags:
+      - STRIDE:T
+      - CWE-1357
+    status: mitigated
+    controls:
+      - M-HF-0001
+controls:
+  - id: M-HF-0001
+    title: cargo-deny refuses unknown registries and git sources; locked dependencies
+    evidence:
+      - deny.toml
+      - Cargo.lock
+      - .github/workflows/ci.yml
