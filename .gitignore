@@ -31,7 +31,6 @@ xcuserdata/
 *.db
 *.db-shm
 *.db-wal
-VIBECTL.md
 
 # ---- Local only (never published) ----
 # A maintainer's local notes for Claude Code, and private plans, research
