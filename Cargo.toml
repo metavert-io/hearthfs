@@ -37,7 +37,7 @@ tract-onnx = "0.21"
 nfs3_types = "0.5"
 notify = "7"
 reqwest = { version = "0.12", features = ["json"] }
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.41.1", features = ["bundled"] }
 tree-sitter = "0.24"
 ureq = { version = "2", features = ["json"] }
 tree-sitter-language = "0.1"
